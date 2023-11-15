@@ -18,7 +18,7 @@ class SOFTDESIGNTRAINING_API ABT_SDTAIController : public ASDTAIController
 	GENERATED_BODY()
 
 public:
-	ABT_SDTAIController();
+	ABT_SDTAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime) override;

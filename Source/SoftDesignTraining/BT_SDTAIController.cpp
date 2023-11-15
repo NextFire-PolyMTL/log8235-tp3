@@ -2,10 +2,11 @@
 
 #include "BT_SDTAIController.h"
 
-ABT_SDTAIController::ABT_SDTAIController()
+ABT_SDTAIController::ABT_SDTAIController(const FObjectInitializer &ObjectInitializer)
+    : Super(ObjectInitializer)
 {
-    m_behaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
     m_blackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
+    m_behaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
 }
 
 void ABT_SDTAIController::BeginPlay()
