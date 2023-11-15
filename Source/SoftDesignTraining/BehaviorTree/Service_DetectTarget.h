@@ -1,16 +1,18 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTService.h"
-#include "Service_ChooseFleeLocation.generated.h"
+#include "Service_DetectTarget.generated.h"
 
+/**
+ * 
+ */
 UCLASS()
-class SOFTDESIGNTRAINING_API UServiceChooseFleeLocation : public UBTService
+class SOFTDESIGNTRAINING_API UService_DetectTarget : public UBTService
 {
 	GENERATED_BODY()
-
-public:
-	UServiceChooseFleeLocation();
 
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 };
