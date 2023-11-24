@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
-#include "IsCollectibleDetected.generated.h"
+#include "Task_IsCollectibleDetected.generated.h"
 
 /**
  *

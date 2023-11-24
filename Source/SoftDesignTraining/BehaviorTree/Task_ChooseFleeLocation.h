@@ -5,7 +5,7 @@
 #include "Task_ChooseFleeLocation.generated.h"
 
 UCLASS()
-class SOFTDESIGNTRAINING_API UTaskChooseFleeLocation : public UBTTask_BlackboardBase
+class SOFTDESIGNTRAINING_API UChooseFleeLocation : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 

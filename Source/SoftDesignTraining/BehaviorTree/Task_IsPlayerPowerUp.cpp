@@ -4,7 +4,7 @@
 #include "Task_IsPlayerPowerUp.h"
 
 
-EBTNodeResult::Type UTask_IsPlayerPowerUp::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UIsPlayerPowerUp::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	return EBTNodeResult::Succeeded;
 }

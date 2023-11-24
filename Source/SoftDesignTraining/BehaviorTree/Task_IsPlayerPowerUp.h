@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class SOFTDESIGNTRAINING_API UTask_IsPlayerPowerUp : public UBTTask_BlackboardBase
+class SOFTDESIGNTRAINING_API UIsPlayerPowerUp : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 	

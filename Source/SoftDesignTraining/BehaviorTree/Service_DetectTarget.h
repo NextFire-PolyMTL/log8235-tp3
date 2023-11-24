@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class SOFTDESIGNTRAINING_API UService_DetectTarget : public UBTService
+class SOFTDESIGNTRAINING_API UDetectTarget : public UBTService
 {
 	GENERATED_BODY()
 

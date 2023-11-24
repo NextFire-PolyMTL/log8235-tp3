@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class SOFTDESIGNTRAINING_API UTask_IsPlayerDetected : public UBTTask_BlackboardBase
+class SOFTDESIGNTRAINING_API UIsPlayerDetected : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 

@@ -6,7 +6,7 @@
 
 
 UCLASS()
-class SOFTDESIGNTRAINING_API UTaskMoveToTarget : public UBTTask_BlackboardBase
+class SOFTDESIGNTRAINING_API UMoveToTarget : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 
