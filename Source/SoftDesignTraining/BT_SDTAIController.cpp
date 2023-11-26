@@ -24,6 +24,25 @@ ABT_SDTAIController::~ABT_SDTAIController()
 
 }
 
+void ABT_SDTAIController::BeginPlay()
+{
+    Super::BeginPlay();
+
+    StartBehaviorTree(GetPawn());
+}
+
+void ABT_SDTAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+    StopBehaviorTree(GetPawn());
+}
+
+void ABT_SDTAIController::Tick(float deltaTime)
+{
+    Super::Tick(deltaTime);
+}
+
 void ABT_SDTAIController::StartBehaviorTree(APawn* pawn)
 {
     if (ASoftDesignTrainingCharacter* aiBaseCharacter = Cast<ASoftDesignTrainingCharacter>(pawn))
@@ -71,5 +90,5 @@ void ABT_SDTAIController::OnPossess(APawn* pawn)
 
 void ABT_SDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
-    m_blackboardComponent->SetValueAsVector("LastKnownPosition", FAISystem::InvalidLocation);
+    m_blackboardComponent->SetValueAsBool("FollowLKP", false);
 }

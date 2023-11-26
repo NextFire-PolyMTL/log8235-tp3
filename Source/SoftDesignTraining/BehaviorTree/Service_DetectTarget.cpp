@@ -2,13 +2,24 @@
 
 
 #include "Service_DetectTarget.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "../SDTAIController.h"
 #include "../SDTUtils.h"
 
+
+
+UDetectTarget::UDetectTarget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+    ChassingTargetKey.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UDetectTarget, ChassingTargetKey), AActor::StaticClass());
+    LKPKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UDetectTarget, LKPKey));
+    ChassingCollectibleKey.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UDetectTarget, ChassingCollectibleKey), AActor::StaticClass());
+    FollowLKPKey.AddBoolFilter(this, GET_MEMBER_NAME_CHECKED(UDetectTarget, FollowLKPKey));
+}
 
 void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit)
 {
@@ -32,6 +43,11 @@ void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult&
 
 void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory, float deltaSeconds)
 {
+    check(ChassingTargetKey.SelectedKeyType == UBlackboardKeyType_Object::StaticClass());
+    check(LKPKey.SelectedKeyType == UBlackboardKeyType_Vector::StaticClass());
+    check(ChassingCollectibleKey.SelectedKeyType == UBlackboardKeyType_Object::StaticClass());
+    check(FollowLKPKey.SelectedKeyType == UBlackboardKeyType_Bool::StaticClass());
+
     UBlackboardComponent* myBlackboard = ownerComp.GetBlackboardComponent();
     if (myBlackboard == nullptr)
     {
@@ -69,30 +85,26 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     FHitResult detectionHit;
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 
-    // Use the focus array inside the AAIController class to put the detected player or the collectible to go to.
-    //AActor* focusedActor = aiController->GetFocusActor();
+    // Retrieve the actual values of the blackboard to decide if we should activate the LKP or not.
+    AActor* targetActor = Cast<AActor>(myBlackboard->GetValueAsObject(ChassingTargetKey.SelectedKeyName));
+    auto followLKP = myBlackboard->GetValueAsBool(FollowLKPKey.SelectedKeyName);
     auto newHit = detectionHit.GetActor();
-    // If we had a player in focus, but we don't have it anymore in LOS, keep only the latest position of the player as a focal point,
-    // otherwise set the actor found (or clear the focus if there is no actor in LOS).
-    //if (Cast<ACharacter>(focusedActor) != nullptr && Cast<ACharacter>(newHit) == nullptr)
-    //{
-    //    aiController->SetFocalPoint(focusedActor->GetActorLocation());
-    //}
-    //else
+    auto newHitIsPlayer = Cast<ACharacter>(newHit) != nullptr;
+
+    // If we had a player in LOS, but it is not the case anymore, or if we don't see the player and we are already following the LKP, set the boolean to TRUE. Otherwise set it to false.
+    myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, !newHitIsPlayer && (targetActor != nullptr || followLKP));
     if (newHit != nullptr)
     {
-        if (Cast<ACharacter>(newHit) != nullptr)
+        if (newHitIsPlayer)
         {
-            FName lastKnownPositionName("LastKnownPosition");
-            if (myBlackboard->GetKeyType(myBlackboard->GetKeyID(lastKnownPositionName)) == UBlackboardKeyType_Object::StaticClass())
-            {
-                myBlackboard->SetValueAsVector(lastKnownPositionName, newHit->GetActorLocation());
-            }
+            myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, newHit->GetActorLocation());
+            myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, newHit);
+            myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
         }
-        aiController->SetFocus(newHit);
-    }
-    else
-    {
-        aiController->ClearFocus(EAIFocusPriority::Gameplay);
+        else
+        {
+            myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
+            myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, newHit);
+        }
     }
 }

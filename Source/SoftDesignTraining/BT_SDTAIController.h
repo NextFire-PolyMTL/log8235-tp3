@@ -21,6 +21,9 @@ public:
     ABT_SDTAIController();
     ~ABT_SDTAIController();
 
+    void BeginPlay() override;
+    void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
     UBehaviorTreeComponent* GetBehaviorTreeComponent() const { return m_behaviorTreeComponent; }
     UBlackboardComponent*   GetBlackBoardComponent() const { return m_blackboardComponent; }
 
@@ -33,6 +36,8 @@ public:
 
     void                    StartBehaviorTree(APawn* pawn);
     void                    StopBehaviorTree(APawn* pawn);
+
+    void Tick(float deltaTime) override;
 
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 

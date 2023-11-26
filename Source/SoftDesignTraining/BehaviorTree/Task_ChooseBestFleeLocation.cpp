@@ -1,10 +1,24 @@
-#include "Task_MoveToBestFleeLocation.h"
+#include "Task_ChooseBestFleeLocation.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "EngineUtils.h"
 #include "../SDTAIController.h"
 #include "../SDTFleeLocation.h"
 
-EBTNodeResult::Type UMoveToBestFleeLocation::ExecuteTask(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory)
+UChooseBestFleeLocation::UChooseBestFleeLocation(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+    NodeName = "Choose Flee Location";
+    BlackboardKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UChooseBestFleeLocation, BlackboardKey));
+}
+
+EBTNodeResult::Type UChooseBestFleeLocation::ExecuteTask(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory)
+{
+    UBlackboardComponent* blackboard = ownerComp.GetBlackboardComponent();
+    if (blackboard == nullptr)
+    {
+        return EBTNodeResult::Failed;
+    }
+
     auto aiController = ownerComp.GetAIOwner();
     if (aiController == nullptr)
     {
@@ -14,6 +28,11 @@ EBTNodeResult::Type UMoveToBestFleeLocation::ExecuteTask(UBehaviorTreeComponent&
 
     auto playerCharacter = aiController->GetFocusActor();
     if (playerCharacter == nullptr)
+    {
+        return EBTNodeResult::Failed;
+    }
+
+    if (BlackboardKey.SelectedKeyType != UBlackboardKeyType_Vector::StaticClass())
     {
         return EBTNodeResult::Failed;
     }
@@ -49,7 +68,8 @@ EBTNodeResult::Type UMoveToBestFleeLocation::ExecuteTask(UBehaviorTreeComponent&
 
     if (bestFleeLocation != nullptr)
     {
-        aiController->MoveToLocation(bestFleeLocation->GetActorLocation(), 0.5f, false, true, false, NULL, false);
+        blackboard->SetValueAsVector(BlackboardKey.SelectedKeyName, bestFleeLocation->GetActorLocation());
+        //aiController->MoveToLocation(bestFleeLocation->GetActorLocation(), 0.5f, false, true, false, NULL, false);
         return EBTNodeResult::Succeeded;
     }
     else
