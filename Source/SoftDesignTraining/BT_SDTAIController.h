@@ -34,6 +34,8 @@ public:
     void                    StartBehaviorTree(APawn* pawn);
     void                    StopBehaviorTree(APawn* pawn);
 
+    virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
+
 protected:
     virtual void OnPossess(APawn* pawn) override;
 

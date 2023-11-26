@@ -68,3 +68,8 @@ void ABT_SDTAIController::OnPossess(APawn* pawn)
         }
     }
 }
+
+void ABT_SDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
+{
+    m_blackboardComponent->SetValueAsVector("LastKnownPosition", FAISystem::InvalidLocation);
+}

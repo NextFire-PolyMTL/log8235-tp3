@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
-#include "Task_IsPlayerPowerUp.generated.h"
+#include "Task_MoveToFocus.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SOFTDESIGNTRAINING_API UIsPlayerPowerUp : public UBTTask_BlackboardBase
+class SOFTDESIGNTRAINING_API UMoveToFocus : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 	

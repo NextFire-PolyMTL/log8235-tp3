@@ -2,16 +2,15 @@
 
 #pragma once
 
-
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
-#include "Task_IsCollectibleDetected.generated.h"
+#include "Task_IsBBValueTrue.generated.h"
 
 /**
  *
  */
 UCLASS()
-class SOFTDESIGNTRAINING_API UIsCollectibleDetected : public UBTTask_BlackboardBase
+class SOFTDESIGNTRAINING_API UIsBBValueTrue : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 

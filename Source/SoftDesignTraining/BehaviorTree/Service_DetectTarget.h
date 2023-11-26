@@ -14,5 +14,5 @@ class SOFTDESIGNTRAINING_API UDetectTarget : public UBTService
 {
 	GENERATED_BODY()
 
-	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+	virtual void TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory, float deltaSeconds) override;
 };
