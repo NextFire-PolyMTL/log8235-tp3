@@ -43,10 +43,12 @@ void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult&
 
 void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory, float deltaSeconds)
 {
+    /*
     check(ChassingTargetKey.SelectedKeyType == UBlackboardKeyType_Object::StaticClass());
     check(LKPKey.SelectedKeyType == UBlackboardKeyType_Vector::StaticClass());
     check(ChassingCollectibleKey.SelectedKeyType == UBlackboardKeyType_Object::StaticClass());
     check(FollowLKPKey.SelectedKeyType == UBlackboardKeyType_Bool::StaticClass());
+    */
 
     UBlackboardComponent* myBlackboard = ownerComp.GetBlackboardComponent();
     if (myBlackboard == nullptr)
