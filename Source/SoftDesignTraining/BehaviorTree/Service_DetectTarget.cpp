@@ -99,9 +99,15 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     {
         if (newHitIsPlayer)
         {
-            myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, newHit->GetActorLocation());
-            myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, newHit);
-            myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
+            if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
+                myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
+                myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
+            }
+            else {
+                myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, newHit->GetActorLocation());
+                myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, newHit);
+                myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
+            }
         }
         else
         {
