@@ -9,6 +9,7 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "../SDTAIController.h"
+#include "../SDTCollectible.h"
 #include "../SDTUtils.h"
 
 
@@ -80,6 +81,7 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
 
     TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
     detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
+    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_COLLECTIBLE));
 
     TArray<FHitResult> allDetectionHits;
     GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(aiController->m_DetectionCapsuleRadius));
@@ -92,11 +94,13 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     auto followLKP = myBlackboard->GetValueAsBool(FollowLKPKey.SelectedKeyName);
     auto newHit = detectionHit.GetActor();
     auto newHitIsPlayer = Cast<ACharacter>(newHit) != nullptr;
+    auto newHitIsCollectible= Cast<ASDTCollectible>(newHit)!=nullptr;
 
     // If we had a player in LOS, but it is not the case anymore, or if we don't see the player and we are already following the LKP, set the boolean to TRUE. Otherwise set it to false.
     myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, !newHitIsPlayer && (targetActor != nullptr || followLKP));
     if (newHit != nullptr)
     {
+
         if (newHitIsPlayer)
         {
             if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
@@ -109,10 +113,23 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
             }
         }
+        else if (newHitIsCollectible)
+        {
+            auto collectible = Cast<ASDTCollectible>(newHit);
+            if (collectible->IsOnCooldown()) {
+                myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
+                myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
+            }
+            else {
+                myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
+                myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, newHit);
+            }
+
+        }
         else
         {
             myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
-            myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, newHit);
+            myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
         }
     }
 }
