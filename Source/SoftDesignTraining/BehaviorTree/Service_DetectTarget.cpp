@@ -170,6 +170,13 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
             aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Valid);
             aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
         }
+
+        if ((selfPawn->GetActorLocation() - LKPPos).Size2D() < 50.f)
+        {
+            followLKP = false;
+            aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
+            aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
+        }
     }
 
     myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, chassingTarget);
