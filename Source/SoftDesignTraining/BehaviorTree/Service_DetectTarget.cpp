@@ -8,9 +8,10 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "../SDTAIController.h"
+#include "../BT_SDTAIController.h"
 #include "../SDTCollectible.h"
 #include "../SDTUtils.h"
+#include "GroupManager.h"
 
 
 
@@ -79,7 +80,7 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
         return;
     }
 
-    ASDTAIController* aiController = Cast<ASDTAIController>(ownerComp.GetAIOwner());
+    ABT_SDTAIController* aiController = Cast<ABT_SDTAIController>(ownerComp.GetAIOwner());
     if (aiController == nullptr || aiController->AtJumpSegment)
     {
         return;
@@ -101,55 +102,89 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     double executionTime = SDTUtils::MeasureExecutionTime(&LookForBestTarget, selfPawn, aiController, detectionHit);
     myBlackboard->SetValueAsFloat("TimeSpentFindPlayer", executionTime);
 
-    // Retrieve the actual values of the blackboard to decide if we should activate the LKP or not.
-    AActor* targetActor = Cast<AActor>(myBlackboard->GetValueAsObject(ChassingTargetKey.SelectedKeyName));
-    auto followLKP = myBlackboard->GetValueAsBool(FollowLKPKey.SelectedKeyName);
     auto newHit = detectionHit.GetActor();
     auto newHitIsPlayer = Cast<ACharacter>(newHit) != nullptr;
     auto newHitIsCollectible= Cast<ASDTCollectible>(newHit)!=nullptr;
 
-    // If we had a player in LOS, but it is not the case anymore, or if we don't see the player and we are already following the LKP, set the boolean to TRUE. Otherwise set it to false.
-    myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, !newHitIsPlayer && (targetActor != nullptr || followLKP));
-    if (newHit != nullptr)
+    FVector LKPPos;
+    auto followLKP = false;
+
+    // Group logic
+    auto groupManager = GroupManager::GetInstance();
+    if (aiController->m_isGroupRegistered)
     {
-
-        if (newHitIsPlayer)
+        auto targetFoundByGroup = false;
+        auto targetInfoFromGroup = groupManager->GetLKPFromGroup(targetFoundByGroup);
+        if (targetFoundByGroup)
         {
-            if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
-                myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, false);
-                //myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
-                //myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
-            }
-            
-            //else {
-            
-                myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, newHit->GetActorLocation());
-                myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, newHit);
-                myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
-            //}
-        }
-        else if (newHitIsCollectible)
-        {
-            auto collectible = Cast<ASDTCollectible>(newHit);
-            if (collectible->IsOnCooldown()) {
-                myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
-                myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
-            }
-            else {
-                myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
-                myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, newHit);
-            }
-
+            LKPPos = targetInfoFromGroup.GetLKPPos();
+            followLKP = !targetInfoFromGroup.IsPoweredUp();
         }
         else
         {
-            //If we don't see a collectible, there is no need to keep the previous targeted one.
-            myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
+            groupManager->UnregisterController(aiController);
+            aiController->m_isGroupRegistered = false;
+        }
+    }
+
+    float currentElapsedTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
+    AActor *chassingTarget = nullptr;
+    AActor *chassingCollectible = nullptr;
+
+    if (newHit != nullptr)
+    {
+        if (newHitIsPlayer)
+        {
+            LKPPos = newHit->GetActorLocation();
+            followLKP = true;
+
+            auto isPoweredUp = SDTUtils::IsPlayerPoweredUp(GetWorld());
+
+            // Update LKP
+            aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_ValidByLOS);
+            aiController->m_currentTargetLkpInfo.SetLKPPos(LKPPos);
+            aiController->m_currentTargetLkpInfo.SetPoweredUp(isPoweredUp);
+            aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
+
+            if (!aiController->m_isGroupRegistered)
+            {
+                groupManager->RegisterController(aiController);
+                aiController->m_isGroupRegistered = true;
+            }
+
+            chassingTarget = isPoweredUp ? nullptr : newHit;
+        }
+        else if (!followLKP && newHitIsCollectible)
+        {
+            auto collectible = Cast<ASDTCollectible>(newHit);
+            auto onCooldown = collectible->IsOnCooldown();
+
+            chassingCollectible = onCooldown ? nullptr : newHit;
         }
     }
     else
     {
-        //If we don't see a collectible, there is no need to keep the previous targeted one.
-        myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
+        // Lost sight of the target
+        if (aiController->m_currentTargetLkpInfo.GetLKPState() == TargetLKPInfo::ELKPState::LKPState_ValidByLOS)
+        {
+            aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Valid);
+            aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
+        }
     }
+
+    myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, chassingTarget);
+    myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, chassingCollectible);
+
+    if (aiController->m_isGroupRegistered)
+    {
+        DrawDebugSphere(GetWorld(), selfPawn->GetActorLocation() + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
+    }
+    if (followLKP)
+    {
+        DrawDebugSphere(GetWorld(), LKPPos, 30.0f, 32, FColor::Green);
+        DrawDebugLine(GetWorld(), selfPawn->GetActorLocation(), LKPPos, FColor::Green);
+    }
+
+    myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, LKPPos);
+    myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, followLKP);
 }

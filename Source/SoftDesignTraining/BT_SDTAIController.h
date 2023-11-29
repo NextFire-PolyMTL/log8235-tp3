@@ -7,6 +7,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "TargetLKPInfo.h"
 #include "BT_SDTAIController.generated.h"
 
 /**
@@ -40,6 +41,9 @@ public:
     void Tick(float deltaTime) override;
 
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
+
+    TargetLKPInfo m_currentTargetLkpInfo;
+	bool m_isGroupRegistered = false;
 
 protected:
     virtual void OnPossess(APawn* pawn) override;
