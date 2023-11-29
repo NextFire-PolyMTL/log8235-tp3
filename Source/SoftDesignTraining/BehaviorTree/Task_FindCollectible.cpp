@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "../SDTCollectible.h"
+#include "../SDTAIController.h"
 #include "../SDTUtils.h"
 
 
@@ -30,6 +31,36 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
 
     while (foundCollectibles.Num() != 0)
     {
+
+        auto aiController = ownerComp.GetAIOwner();
+        if (aiController == nullptr)
+        {
+            return EBTNodeResult::Failed;
+        }
+        auto aiLocation = aiController->GetPawn()->GetActorLocation();
+        ASDTCollectible* collectibleActor = nullptr;
+        for (int i=0; i<foundCollectibles.Num(); i++)
+        {
+            collectibleActor = Cast<ASDTCollectible>(foundCollectibles[i]);
+            if (!collectibleActor)
+                return EBTNodeResult::Failed;
+            auto dist = FVector::Dist(aiLocation, collectibleActor->GetActorLocation());
+            if (!collectibleActor->IsOnCooldown() && dist < closestSqrCollectibleDistance)
+            {
+                closestCollectible = collectibleActor;
+                closestSqrCollectibleDistance = dist;
+            }
+        }
+        if (!closestCollectible) {
+            return EBTNodeResult::Failed;
+        }
+        else {
+            blackboard->SetValueAsObject(BlackboardKey.SelectedKeyName, closestCollectible);
+            //MoveToLocation(foundCollectibles[index]->GetActorLocation(), 0.5f, false, true, true, NULL, false);
+            //OnMoveToTarget();
+            return EBTNodeResult::Succeeded;
+        }
+        /*
         int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
 
         ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
@@ -47,6 +78,7 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
         {
             foundCollectibles.RemoveAt(index);
         }
+        */
     }
 
     return EBTNodeResult::Failed;
