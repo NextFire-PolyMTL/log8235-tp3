@@ -58,7 +58,7 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     }
 
     ASDTAIController* aiController = Cast<ASDTAIController>(ownerComp.GetAIOwner());
-    if (aiController == nullptr)
+    if (aiController == nullptr || aiController->AtJumpSegment)
     {
         return;
     }
@@ -74,7 +74,6 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     {
         return;
     }
-
 
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleHalfLength * 2;
@@ -103,10 +102,12 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
 
         if (newHitIsPlayer)
         {
+            
             if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
                 myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
             }
+            
             else {
                 myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, newHit->GetActorLocation());
                 myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, newHit);
@@ -121,6 +122,8 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
             }
             else {
+
+                DrawDebugPoint(GetWorld(), newHit->GetActorLocation(), 40.0f, FColor::Red);
                 myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, newHit);
             }

@@ -31,7 +31,7 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
 
     while (foundCollectibles.Num() != 0)
     {
-
+        /*
         auto aiController = ownerComp.GetAIOwner();
         if (aiController == nullptr)
         {
@@ -60,7 +60,8 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
             //OnMoveToTarget();
             return EBTNodeResult::Succeeded;
         }
-        /*
+        */
+        
         int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
 
         ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
@@ -78,7 +79,7 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
         {
             foundCollectibles.RemoveAt(index);
         }
-        */
+        
     }
 
     return EBTNodeResult::Failed;
