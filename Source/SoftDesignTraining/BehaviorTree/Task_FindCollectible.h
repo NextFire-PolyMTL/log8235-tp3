@@ -15,4 +15,7 @@ class SOFTDESIGNTRAINING_API UTask_FindCollectible : public UBTTask_BlackboardBa
 	GENERATED_BODY()
 
 	EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory) override;
+
+private:
+	EBTNodeResult::Type FindCollectible(UBlackboardComponent* blackboard, uint8* nodeMemory);
 };

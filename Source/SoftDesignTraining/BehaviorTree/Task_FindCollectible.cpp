@@ -23,6 +23,16 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
         return EBTNodeResult::Failed;
     }
 
+    double beginSearchCollectible = FPlatformTime::Seconds();
+    auto result = FindCollectible(blackboard, nodeMemory);
+    double endSearchCollectible = FPlatformTime::Seconds();
+    blackboard->SetValueAsFloat("TimeSpentFindCollectible", (endSearchCollectible - beginSearchCollectible) * 1000.0);
+    return result;
+}
+
+
+EBTNodeResult::Type UTask_FindCollectible::FindCollectible(UBlackboardComponent* blackboard, uint8* nodeMemory)
+{
     float closestSqrCollectibleDistance = 18446744073709551610.f;
     ASDTCollectible* closestCollectible = nullptr;
 
@@ -31,37 +41,6 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
 
     while (foundCollectibles.Num() != 0)
     {
-        /*
-        auto aiController = ownerComp.GetAIOwner();
-        if (aiController == nullptr)
-        {
-            return EBTNodeResult::Failed;
-        }
-        auto aiLocation = aiController->GetPawn()->GetActorLocation();
-        ASDTCollectible* collectibleActor = nullptr;
-        for (int i=0; i<foundCollectibles.Num(); i++)
-        {
-            collectibleActor = Cast<ASDTCollectible>(foundCollectibles[i]);
-            if (!collectibleActor)
-                return EBTNodeResult::Failed;
-            auto dist = FVector::Dist(aiLocation, collectibleActor->GetActorLocation());
-            if (!collectibleActor->IsOnCooldown() && dist < closestSqrCollectibleDistance)
-            {
-                closestCollectible = collectibleActor;
-                closestSqrCollectibleDistance = dist;
-            }
-        }
-        if (!closestCollectible) {
-            return EBTNodeResult::Failed;
-        }
-        else {
-            blackboard->SetValueAsObject(BlackboardKey.SelectedKeyName, closestCollectible);
-            //MoveToLocation(foundCollectibles[index]->GetActorLocation(), 0.5f, false, true, true, NULL, false);
-            //OnMoveToTarget();
-            return EBTNodeResult::Succeeded;
-        }
-        */
-        
         int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
 
         ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
@@ -71,15 +50,13 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
         if (!collectibleActor->IsOnCooldown())
         {
             blackboard->SetValueAsObject(BlackboardKey.SelectedKeyName, foundCollectibles[index]);
-            //MoveToLocation(foundCollectibles[index]->GetActorLocation(), 0.5f, false, true, true, NULL, false);
-            //OnMoveToTarget();
             return EBTNodeResult::Succeeded;
         }
         else
         {
             foundCollectibles.RemoveAt(index);
         }
-        
+
     }
 
     return EBTNodeResult::Failed;

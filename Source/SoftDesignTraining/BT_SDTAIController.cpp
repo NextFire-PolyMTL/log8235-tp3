@@ -7,6 +7,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Float.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 
 
@@ -40,6 +41,12 @@ void ABT_SDTAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ABT_SDTAIController::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
+
+    auto world = GetWorld();
+    auto loc = GetCharacter()->GetActorLocation();
+    DrawDebugString(world, loc - FVector::UpVector * 100, FString::Printf(TEXT("Player: %.3fms"), m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindPlayer)), nullptr, FColor::Purple, 0.0f, true);
+    DrawDebugString(world, loc - FVector::UpVector * 200, FString::Printf(TEXT("Flee: %.3fms"), m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindFleePoint)), nullptr, FColor::Purple, 0.0f, true);
+    DrawDebugString(world, loc - FVector::UpVector * 300, FString::Printf(TEXT("Collectible: %.3fms"), m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindCollectible)), nullptr, FColor::Purple, 0.0f, true);
 }
 
 void ABT_SDTAIController::StartBehaviorTree(APawn* pawn)
@@ -83,6 +90,10 @@ void ABT_SDTAIController::OnPossess(APawn* pawn)
 
             // Set this agent in the BT
             m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);
+
+            TimeSpentFindPlayer = m_blackboardComponent->GetKeyID("TimeSpentFindPlayer");
+            TimeSpentFindCollectible = m_blackboardComponent->GetKeyID("TimeSpentFindCollectible");
+            TimeSpentFindFleePoint = m_blackboardComponent->GetKeyID("TimeSpentFindFleePoint");
         }
     }
 }

@@ -75,6 +75,7 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
         return;
     }
 
+    double beginSearchPlayer = FPlatformTime::Seconds();
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleHalfLength * 2;
 
@@ -87,6 +88,8 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
 
     FHitResult detectionHit;
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
+    double endSearchPlayer = FPlatformTime::Seconds();
+    myBlackboard->SetValueAsFloat("TimeSpentFindPlayer", (endSearchPlayer - beginSearchPlayer) * 1000.0);
 
     // Retrieve the actual values of the blackboard to decide if we should activate the LKP or not.
     AActor* targetActor = Cast<AActor>(myBlackboard->GetValueAsObject(ChassingTargetKey.SelectedKeyName));

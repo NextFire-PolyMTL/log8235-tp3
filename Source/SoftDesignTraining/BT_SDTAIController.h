@@ -57,4 +57,8 @@ private:
     uint8   m_isCollectibleSeenBBKeyID;
     uint8   m_FleePosBBKeyID;
     uint8   m_isPlayerPowerUpBBKeyID;
+
+    FBlackboard::FKey TimeSpentFindPlayer;
+    FBlackboard::FKey TimeSpentFindCollectible;
+    FBlackboard::FKey TimeSpentFindFleePoint;
 };

@@ -37,6 +37,7 @@ EBTNodeResult::Type UChooseBestFleeLocation::ExecuteTask(UBehaviorTreeComponent&
         return EBTNodeResult::Failed;
     }
 
+    double beginSearchFleePoint = FPlatformTime::Seconds();
     float bestLocationScore = 0.f;
     ASDTFleeLocation* bestFleeLocation = nullptr;
 
@@ -65,6 +66,8 @@ EBTNodeResult::Type UChooseBestFleeLocation::ExecuteTask(UBehaviorTreeComponent&
             DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
         }
     }
+    double endSearchFleePoint = FPlatformTime::Seconds();
+    blackboard->SetValueAsFloat("TimeSpentFindFleePoint", (endSearchFleePoint - beginSearchFleePoint) * 1000.0);
 
     if (bestFleeLocation != nullptr)
     {
