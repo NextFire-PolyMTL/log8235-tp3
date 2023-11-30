@@ -27,11 +27,6 @@ ABT_SDTAIController::~ABT_SDTAIController()
 void ABT_SDTAIController::BeginPlay()
 {
     Super::BeginPlay();
-    UBehaviorTree* BTAsset = LoadObject<UBehaviorTree>(nullptr, TEXT("/Game/Blueprint/BehaviorTree.BehaviorTree"), nullptr, LOAD_None, nullptr);
-    if (BTAsset!=nullptr)
-    {
-        RunBehaviorTree(BTAsset);
-    }
     StartBehaviorTree(GetPawn());
 }
 
