@@ -21,7 +21,7 @@ public:
     float m_DetectionCapsuleHalfLength = 500.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-    float m_DetectionCapsuleRadius = 250.f;
+    float m_DetectionCapsuleRadius = 350.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
     float m_DetectionCapsuleForwardStartingOffset = 100.f;

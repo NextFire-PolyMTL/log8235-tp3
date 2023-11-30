@@ -112,17 +112,18 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
 
         if (newHitIsPlayer)
         {
-            
+            /*
             if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
                 myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
             }
             
             else {
+            */
                 myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, newHit->GetActorLocation());
                 myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, newHit);
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
-            }
+            //}
         }
         else if (newHitIsCollectible)
         {
@@ -141,8 +142,13 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
         }
         else
         {
-            myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
+            //If we don't see a collectible, there is no need to keep the previous targeted one.
             myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
         }
+    }
+    else
+    {
+        //If we don't see a collectible, there is no need to keep the previous targeted one.
+        myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
     }
 }

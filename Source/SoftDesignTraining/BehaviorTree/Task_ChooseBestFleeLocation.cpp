@@ -9,6 +9,7 @@ UChooseBestFleeLocation::UChooseBestFleeLocation(const FObjectInitializer& Objec
 {
     NodeName = "Choose Flee Location";
     BlackboardKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UChooseBestFleeLocation, BlackboardKey));
+    ChassingTargetKey.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UChooseBestFleeLocation, ChassingTargetKey), AActor::StaticClass());
 }
 
 EBTNodeResult::Type UChooseBestFleeLocation::ExecuteTask(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory)
@@ -26,7 +27,8 @@ EBTNodeResult::Type UChooseBestFleeLocation::ExecuteTask(UBehaviorTreeComponent&
     }
     auto aiLocation = aiController->GetPawn()->GetActorLocation();
 
-    auto playerCharacter = aiController->GetFocusActor();
+    //auto playerCharacter = aiController->GetFocusActor();
+    auto playerCharacter = Cast<AActor>(blackboard->GetValueAsObject(ChassingTargetKey.SelectedKeyName));
     if (playerCharacter == nullptr)
     {
         return EBTNodeResult::Failed;
