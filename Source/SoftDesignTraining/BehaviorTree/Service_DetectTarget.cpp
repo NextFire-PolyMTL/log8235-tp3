@@ -30,13 +30,18 @@ void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult&
         {
             if (component->GetCollisionObjectType() == COLLISION_PLAYER)
             {
-                //we can't get more important than the player
+                // We can't get more important than the player
                 outDetectionHit = hit;
                 return;
             }
             else if (component->GetCollisionObjectType() == COLLISION_COLLECTIBLE)
             {
                 outDetectionHit = hit;
+            }
+            else if (component->GetCollisionObjectType() == ECC_WorldStatic)
+            {
+                // Don't look through walls.
+                return;
             }
         }
     }
@@ -82,7 +87,9 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
     detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
     detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_COLLECTIBLE));
+    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 
+    // Why this sweep goes through walls? Fix it in GetHightestPriorityDetectionHit for now.
     TArray<FHitResult> allDetectionHits;
     GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(aiController->m_DetectionCapsuleRadius));
 
