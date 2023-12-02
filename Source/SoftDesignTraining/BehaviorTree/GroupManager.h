@@ -14,6 +14,7 @@ public:
 
     void RegisterController(ABT_SDTAIController *controller);
     void UnregisterController(ABT_SDTAIController *controller);
+    bool IsControllerRegistered(ABT_SDTAIController *controller);
 
     TargetLKPInfo GetLKPFromGroup(bool &targetFound);
 
@@ -22,5 +23,5 @@ private:
     GroupManager();
     static GroupManager *m_Instance;
 
-    TArray<ABT_SDTAIController *> m_registeredControllers;
+    TSet<ABT_SDTAIController *> m_registeredControllers;
 };

@@ -34,15 +34,18 @@ void GroupManager::UnregisterController(ABT_SDTAIController *controller)
     m_registeredControllers.Remove(controller);
 }
 
+bool GroupManager::IsControllerRegistered(ABT_SDTAIController *controller)
+{
+    return m_registeredControllers.Contains(controller);
+}
+
 TargetLKPInfo GroupManager::GetLKPFromGroup(bool &targetfound)
 {
-    int controllerCount = m_registeredControllers.Num();
     TargetLKPInfo outLKPInfo = TargetLKPInfo();
     targetfound = false;
 
-    for (int i = 0; i < controllerCount; ++i)
+    for (auto &controller : m_registeredControllers)
     {
-        ABT_SDTAIController *controller = m_registeredControllers[i];
         if (controller)
         {
             const TargetLKPInfo &targetLKPInfo = controller->m_currentTargetLkpInfo;
