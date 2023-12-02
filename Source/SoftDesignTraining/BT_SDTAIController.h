@@ -43,7 +43,6 @@ public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 
     TargetLKPInfo m_currentTargetLkpInfo;
-	bool m_isGroupRegistered = false;
 
 protected:
     virtual void OnPossess(APawn* pawn) override;

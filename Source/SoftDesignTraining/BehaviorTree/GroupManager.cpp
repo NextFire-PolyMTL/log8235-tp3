@@ -46,8 +46,7 @@ TargetLKPInfo GroupManager::GetLKPFromGroup(bool &targetfound)
         if (controller)
         {
             const TargetLKPInfo &targetLKPInfo = controller->m_currentTargetLkpInfo;
-            if ((targetLKPInfo.GetLastUpdatedTimeStamp() > outLKPInfo.GetLastUpdatedTimeStamp()) ||
-                (targetLKPInfo.GetLKPState() == TargetLKPInfo::ELKPState::LKPState_ValidByLOS))
+            if (targetLKPInfo.GetLastUpdatedTimeStamp() > outLKPInfo.GetLastUpdatedTimeStamp())
             {
                 targetfound = targetLKPInfo.GetLKPState() != TargetLKPInfo::ELKPState::LKPState_Invalid;
                 outLKPInfo = targetLKPInfo;

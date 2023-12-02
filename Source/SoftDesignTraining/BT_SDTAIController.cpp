@@ -9,6 +9,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Float.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "BehaviorTree/GroupManager.h"
 
 
 ABT_SDTAIController::ABT_SDTAIController()
@@ -29,6 +30,9 @@ void ABT_SDTAIController::BeginPlay()
 {
     Super::BeginPlay();
     StartBehaviorTree(GetPawn());
+
+    auto groupManager = GroupManager::GetInstance();
+    groupManager->RegisterController(this);
 }
 
 void ABT_SDTAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)

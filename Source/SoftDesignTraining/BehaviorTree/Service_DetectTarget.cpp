@@ -102,57 +102,45 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     double executionTime = SDTUtils::MeasureExecutionTime(&LookForBestTarget, selfPawn, aiController, detectionHit);
     myBlackboard->SetValueAsFloat("TimeSpentFindPlayer", executionTime);
 
-    auto newHit = detectionHit.GetActor();
-    auto newHitIsPlayer = Cast<ACharacter>(newHit) != nullptr;
-    auto newHitIsCollectible= Cast<ASDTCollectible>(newHit)!=nullptr;
+    auto currentElapsedTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 
-    FVector LKPPos;
-    auto followLKP = false;
+    auto followLKP = myBlackboard->GetValueAsBool(FollowLKPKey.SelectedKeyName);
 
-    // Group logic
-    auto groupManager = GroupManager::GetInstance();
-    if (aiController->m_isGroupRegistered)
+    auto LKPPos = myBlackboard->GetValueAsVector(LKPKey.SelectedKeyName);
+    if ((selfPawn->GetActorLocation() - LKPPos).Size2D() < 50.0f)
     {
-        auto targetFoundByGroup = false;
-        auto targetInfoFromGroup = groupManager->GetLKPFromGroup(targetFoundByGroup);
-        if (targetFoundByGroup)
-        {
-            LKPPos = targetInfoFromGroup.GetLKPPos();
-            followLKP = !targetInfoFromGroup.IsPoweredUp();
-        }
-        else
-        {
-            groupManager->UnregisterController(aiController);
-            aiController->m_isGroupRegistered = false;
-        }
+        followLKP = false;
+        aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
+        aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
     }
 
-    float currentElapsedTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
+    auto newHit = detectionHit.GetActor();
+
     AActor *chassingTarget = nullptr;
     AActor *chassingCollectible = nullptr;
 
     if (newHit != nullptr)
     {
+        auto newHitIsPlayer = Cast<ACharacter>(newHit) != nullptr;
+        auto newHitIsCollectible = Cast<ASDTCollectible>(newHit) != nullptr;
+
         if (newHitIsPlayer)
         {
-            LKPPos = newHit->GetActorLocation();
-            followLKP = true;
-
             auto isPoweredUp = SDTUtils::IsPlayerPoweredUp(GetWorld());
 
-            // Update LKP
+            // Update controller LKP
             aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_ValidByLOS);
-            aiController->m_currentTargetLkpInfo.SetLKPPos(LKPPos);
+            aiController->m_currentTargetLkpInfo.SetLKPPos(newHit->GetActorLocation());
             aiController->m_currentTargetLkpInfo.SetPoweredUp(isPoweredUp);
             aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
 
-            if (!aiController->m_isGroupRegistered)
-            {
-                groupManager->RegisterController(aiController);
-                aiController->m_isGroupRegistered = true;
-            }
-
             chassingTarget = isPoweredUp ? nullptr : newHit;
+
+            if (chassingTarget != nullptr)
+            {
+                DrawDebugSphere(GetWorld(), chassingTarget->GetActorLocation(), 80.0f, 32, FColor::Red);
+                DrawDebugLine(GetWorld(), selfPawn->GetActorLocation(), chassingTarget->GetActorLocation(), FColor::Red);
+            }
         }
         else if (!followLKP && newHitIsCollectible)
         {
@@ -160,6 +148,12 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
             auto onCooldown = collectible->IsOnCooldown();
 
             chassingCollectible = onCooldown ? nullptr : newHit;
+
+            if (chassingCollectible != nullptr)
+            {
+                DrawDebugSphere(GetWorld(), chassingCollectible->GetActorLocation(), 80.0f, 32, FColor::Purple);
+                DrawDebugLine(GetWorld(), selfPawn->GetActorLocation(), chassingCollectible->GetActorLocation(), FColor::Purple);
+            }
         }
     }
     else
@@ -169,29 +163,37 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
         {
             aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Valid);
             aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
-        }
-
-        if ((selfPawn->GetActorLocation() - LKPPos).Size2D() < 50.f)
-        {
-            followLKP = false;
-            aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
-            aiController->m_currentTargetLkpInfo.SetLastUpdatedTimeStamp(currentElapsedTime);
+            followLKP = true;
         }
     }
 
     myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, chassingTarget);
     myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, chassingCollectible);
 
-    if (aiController->m_isGroupRegistered)
-    {
-        DrawDebugSphere(GetWorld(), selfPawn->GetActorLocation() + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
-    }
+    // ask group manager for updated LKP
     if (followLKP)
     {
-        DrawDebugSphere(GetWorld(), LKPPos, 30.0f, 32, FColor::Green);
-        DrawDebugLine(GetWorld(), selfPawn->GetActorLocation(), LKPPos, FColor::Green);
+        auto groupManager = GroupManager::GetInstance();
+        auto targetFoundByGroup = false;
+        aiController->m_currentTargetLkpInfo = groupManager->GetLKPFromGroup(targetFoundByGroup);
+        if (targetFoundByGroup)
+        {
+            followLKP = !aiController->m_currentTargetLkpInfo.IsPoweredUp();
+            LKPPos = aiController->m_currentTargetLkpInfo.GetLKPPos();
+
+            if (followLKP)
+            {
+                DrawDebugSphere(GetWorld(), LKPPos, 30.0f, 32, FColor::Green);
+                DrawDebugLine(GetWorld(), selfPawn->GetActorLocation(), LKPPos, FColor::Green);
+            }
+
+            myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, LKPPos);
+        }
+        else
+        {
+            followLKP = false;
+        }
     }
 
-    myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, LKPPos);
     myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, followLKP);
 }
