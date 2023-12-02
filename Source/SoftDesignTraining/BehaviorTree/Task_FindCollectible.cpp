@@ -23,11 +23,9 @@ EBTNodeResult::Type UTask_FindCollectible::ExecuteTask(UBehaviorTreeComponent& o
         return EBTNodeResult::Failed;
     }
 
-    double beginSearchCollectible = FPlatformTime::Seconds();
-    auto result = FindCollectible(blackboard, nodeMemory);
-    double endSearchCollectible = FPlatformTime::Seconds();
-    blackboard->SetValueAsFloat("TimeSpentFindCollectible", (endSearchCollectible - beginSearchCollectible) * 1000.0);
-    return result;
+    auto result = SDTUtils::MeasureExecutionTime(&UTask_FindCollectible::FindCollectible, this, blackboard, nodeMemory);
+    blackboard->SetValueAsFloat("TimeSpentFindCollectible", result.first);
+    return result.second;
 }
 
 

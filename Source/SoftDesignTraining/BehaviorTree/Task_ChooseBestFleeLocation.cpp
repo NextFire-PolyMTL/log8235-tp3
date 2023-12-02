@@ -4,6 +4,39 @@
 #include "EngineUtils.h"
 #include "../SDTAIController.h"
 #include "../SDTFleeLocation.h"
+#include "../SDTUtils.h"
+
+AActor* FindBestFleeLocation(AActor* playerCharacter, FVector aiLocation)
+{
+    float bestLocationScore = 0.f;
+    ASDTFleeLocation* bestFleeLocation = nullptr;
+
+    for (TActorIterator<ASDTFleeLocation> actorIterator(playerCharacter->GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
+    {
+        ASDTFleeLocation* fleeLocation = Cast<ASDTFleeLocation>(*actorIterator);
+        if (fleeLocation != nullptr)
+        {
+            float distToFleeLocation = FVector::Dist(fleeLocation->GetActorLocation(), playerCharacter->GetActorLocation());
+
+            FVector selfToPlayer = playerCharacter->GetActorLocation() - aiLocation;
+            selfToPlayer.Normalize();
+
+            FVector selfToFleeLocation = fleeLocation->GetActorLocation() - aiLocation;
+            selfToFleeLocation.Normalize();
+
+            float fleeLocationToPlayerAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(selfToPlayer, selfToFleeLocation)));
+            float locationScore = distToFleeLocation + fleeLocationToPlayerAngle * 100.f;
+
+            if (locationScore > bestLocationScore)
+            {
+                bestLocationScore = locationScore;
+                bestFleeLocation = fleeLocation;
+            }
+        }
+    }
+
+    return bestFleeLocation;
+}
 
 UChooseBestFleeLocation::UChooseBestFleeLocation(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -39,37 +72,9 @@ EBTNodeResult::Type UChooseBestFleeLocation::ExecuteTask(UBehaviorTreeComponent&
         return EBTNodeResult::Failed;
     }
 
-    double beginSearchFleePoint = FPlatformTime::Seconds();
-    float bestLocationScore = 0.f;
-    ASDTFleeLocation* bestFleeLocation = nullptr;
-
-    for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
-    {
-        ASDTFleeLocation* fleeLocation = Cast<ASDTFleeLocation>(*actorIterator);
-        if (fleeLocation != nullptr)
-        {
-            float distToFleeLocation = FVector::Dist(fleeLocation->GetActorLocation(), playerCharacter->GetActorLocation());
-
-            FVector selfToPlayer = playerCharacter->GetActorLocation() - aiLocation;
-            selfToPlayer.Normalize();
-
-            FVector selfToFleeLocation = fleeLocation->GetActorLocation() - aiLocation;
-            selfToFleeLocation.Normalize();
-
-            float fleeLocationToPlayerAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(selfToPlayer, selfToFleeLocation)));
-            float locationScore = distToFleeLocation + fleeLocationToPlayerAngle * 100.f;
-
-            if (locationScore > bestLocationScore)
-            {
-                bestLocationScore = locationScore;
-                bestFleeLocation = fleeLocation;
-            }
-
-            DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
-        }
-    }
-    double endSearchFleePoint = FPlatformTime::Seconds();
-    blackboard->SetValueAsFloat("TimeSpentFindFleePoint", (endSearchFleePoint - beginSearchFleePoint) * 1000.0);
+    auto result = SDTUtils::MeasureExecutionTime(&FindBestFleeLocation, playerCharacter, aiLocation);
+    auto bestFleeLocation = result.second;
+    blackboard->SetValueAsFloat("TimeSpentFindFleePoint", result.first);
 
     if (bestFleeLocation != nullptr)
     {

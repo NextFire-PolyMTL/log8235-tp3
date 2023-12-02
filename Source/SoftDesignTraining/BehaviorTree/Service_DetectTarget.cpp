@@ -47,6 +47,23 @@ void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult&
     }
 }
 
+void LookForBestTarget(const APawn* selfPawn, const ASDTAIController* aiController, FHitResult& detectionHit)
+{
+    FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
+    FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleHalfLength * 2;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
+    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
+    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_COLLECTIBLE));
+    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+
+    // Why this sweep goes through walls? Fix it in GetHightestPriorityDetectionHit for now.
+    TArray<FHitResult> allDetectionHits;
+    selfPawn->GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(aiController->m_DetectionCapsuleRadius));
+
+    GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
+}
+
 void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemory, float deltaSeconds)
 {
     /*
@@ -80,23 +97,9 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
         return;
     }
 
-    double beginSearchPlayer = FPlatformTime::Seconds();
-    FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
-    FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleHalfLength * 2;
-
-    TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
-    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
-    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_COLLECTIBLE));
-    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
-
-    // Why this sweep goes through walls? Fix it in GetHightestPriorityDetectionHit for now.
-    TArray<FHitResult> allDetectionHits;
-    GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(aiController->m_DetectionCapsuleRadius));
-
     FHitResult detectionHit;
-    GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
-    double endSearchPlayer = FPlatformTime::Seconds();
-    myBlackboard->SetValueAsFloat("TimeSpentFindPlayer", (endSearchPlayer - beginSearchPlayer) * 1000.0);
+    double executionTime = SDTUtils::MeasureExecutionTime(&LookForBestTarget, selfPawn, aiController, detectionHit);
+    myBlackboard->SetValueAsFloat("TimeSpentFindPlayer", executionTime);
 
     // Retrieve the actual values of the blackboard to decide if we should activate the LKP or not.
     AActor* targetActor = Cast<AActor>(myBlackboard->GetValueAsObject(ChassingTargetKey.SelectedKeyName));
@@ -112,7 +115,6 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
 
         if (newHitIsPlayer)
         {
-            
             if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
                 myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, false);
                 //myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
@@ -134,8 +136,6 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, nullptr);
             }
             else {
-
-                DrawDebugPoint(GetWorld(), newHit->GetActorLocation(), 40.0f, FColor::Red);
                 myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, nullptr);
                 myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, newHit);
             }
