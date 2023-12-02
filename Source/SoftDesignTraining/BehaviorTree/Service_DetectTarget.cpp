@@ -104,9 +104,11 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
 
     auto currentElapsedTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 
+    // Current LKP position and if we should follow it
+    auto LKPPos = myBlackboard->GetValueAsVector(LKPKey.SelectedKeyName);
     auto followLKP = myBlackboard->GetValueAsBool(FollowLKPKey.SelectedKeyName);
 
-    auto LKPPos = myBlackboard->GetValueAsVector(LKPKey.SelectedKeyName);
+    // If we are close enough, stop following it and mark it as invalid
     if ((selfPawn->GetActorLocation() - LKPPos).Size2D() < 5.f)
     {
         followLKP = false;
@@ -158,7 +160,7 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     }
     else
     {
-        // Lost sight of the target
+        // Lost sight of the target, mark lkp as valid and follow it
         if (aiController->m_currentTargetLkpInfo.GetLKPState() == TargetLKPInfo::ELKPState::LKPState_ValidByLOS)
         {
             aiController->m_currentTargetLkpInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Valid);
@@ -170,12 +172,13 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
     myBlackboard->SetValueAsObject(ChassingTargetKey.SelectedKeyName, chassingTarget);
     myBlackboard->SetValueAsObject(ChassingCollectibleKey.SelectedKeyName, chassingCollectible);
 
-    // register and ask group manager for updated LKP
+    // if we are following the LKP, register the controller to the group manager
     auto groupManager = GroupManager::GetInstance();
     if (followLKP)
     {
         groupManager->RegisterController(aiController);
 
+        // ask the group manager for the updated group LKP
         auto targetFoundByGroup = false;
         aiController->m_currentTargetLkpInfo = groupManager->GetLKPFromGroup(targetFoundByGroup);
         if (targetFoundByGroup)
@@ -189,6 +192,7 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
                 DrawDebugLine(GetWorld(), selfPawn->GetActorLocation(), LKPPos, FColor::Green);
             }
 
+            // Update LKP position in blackboard
             myBlackboard->SetValueAsVector(LKPKey.SelectedKeyName, LKPPos);
         }
         else
@@ -197,6 +201,8 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
         }
     }
 
+    // if we are not following the LKP anymore,
+    // unregister the controller from the group manager
     if (!followLKP)
     {
         groupManager->UnregisterController(aiController);
@@ -207,5 +213,6 @@ void UDetectTarget::TickNode(UBehaviorTreeComponent& ownerComp, uint8* nodeMemor
         DrawDebugSphere(GetWorld(), selfPawn->GetActorLocation() + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
     }
 
+    // Update if we are following the LKP in blackboard
     myBlackboard->SetValueAsBool(FollowLKPKey.SelectedKeyName, followLKP);
 }
