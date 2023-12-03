@@ -23,11 +23,19 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime) override;
 
+	UBlackboardComponent *GetBlackboardComponent() const { return m_blackboardComponent; }
+
 	uint8 GetPlayerPositionBBKeyID() const { return m_playerPositionBBKeyID; }
 	uint8 GetPlayerDetectedBBKeyID() const { return m_isPlayerDetectedBBKeyID; }
+	uint8 GetLastSeenBBKeyID() const { return m_lastSeenBBKeyID; }
+
 	uint8 GetPlayerPoweredUpBBKeyID() const { return m_isPlayerPoweredUpBBKeyID; }
 	uint8 GetFleePositionBBKeyID() const { return m_fleePositionBBKeyID; }
+
 	uint8 GetCollectiblePositionBBKeyID() const { return m_collectiblePositionBBKeyID; }
+
+	uint8 GetShouldInvestigateBBKeyID() const { return m_shouldInvestigateBBKeyID; }
+	uint8 GetGroupTargetPositionBBKeyID() const { return m_groupTargetPositionBBKeyID; }
 
 protected:
 	UPROPERTY(EditAnywhere, category = Behavior)
@@ -42,7 +50,13 @@ private:
 
 	uint8 m_playerPositionBBKeyID;
 	uint8 m_isPlayerDetectedBBKeyID;
+	uint8 m_lastSeenBBKeyID;
+
 	uint8 m_isPlayerPoweredUpBBKeyID;
 	uint8 m_fleePositionBBKeyID;
+
 	uint8 m_collectiblePositionBBKeyID;
+
+	uint8 m_shouldInvestigateBBKeyID;
+	uint8 m_groupTargetPositionBBKeyID;
 };

@@ -3,8 +3,10 @@
 #include "BTService_DetectPlayer.h"
 #include "../BT_SDTAIController.h"
 #include "../SDTUtils.h"
+#include "../SoftDesignTraining.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Float.h"
 
 UBTService_DetectPlayer::UBTService_DetectPlayer()
 {
@@ -36,6 +38,7 @@ void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent &OwnerComp, uint8 
         DrawDebugLine(GetWorld(), detectionStartLocation, detectionHit.ImpactPoint, FColor::Red);
         OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(ctrl->GetPlayerDetectedBBKeyID(), true);
         OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(ctrl->GetPlayerPositionBBKeyID(), detectionHit.GetActor()->GetActorLocation());
+        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Float>(ctrl->GetLastSeenBBKeyID(), UGameplayStatics::GetRealTimeSeconds(GetWorld()));
     }
     else
     {
