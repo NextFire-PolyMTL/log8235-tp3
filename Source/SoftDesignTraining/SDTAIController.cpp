@@ -347,11 +347,6 @@ void ASDTAIController::GetHightestPriorityDetectionHit(const TArray<FHitResult>&
             {
                 outDetectionHit = hit;
             }
-            else if (component->GetCollisionObjectType() == ECC_WorldStatic)
-            {
-                // Don't look through walls.
-                return;
-            }
         }
     }
 }

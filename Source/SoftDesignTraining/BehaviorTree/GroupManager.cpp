@@ -49,7 +49,7 @@ FVector GroupManager::GetLKPFromGroup(bool &targetfound)
         {
             auto bb = controller->GetBlackboardComponent();
             auto lastSeen = bb->GetValue<UBlackboardKeyType_Float>(controller->GetLastSeenBBKeyID());
-            if (lastSeen > lastUpdatedTimeStamp)
+            if (lastSeen && lastSeen > lastUpdatedTimeStamp)
             {
                 lastUpdatedTimeStamp = lastSeen;
                 outLKP = bb->GetValue<UBlackboardKeyType_Vector>(controller->GetPlayerPositionBBKeyID());

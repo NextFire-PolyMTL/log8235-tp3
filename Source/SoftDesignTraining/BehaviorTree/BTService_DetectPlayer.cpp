@@ -18,12 +18,17 @@ void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent &OwnerComp, uint8 
     auto ctrl = Cast<ABT_SDTAIController>(OwnerComp.GetAIOwner());
     auto selfPawn = ctrl->GetPawn();
 
+    auto movcomp = ctrl->GetCharacter()->GetMovementComponent();
+    if (movcomp->IsFlying() || movcomp->IsFalling())
+    {
+        return;
+    }
+
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * ctrl->m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * ctrl->m_DetectionCapsuleHalfLength * 2;
 
     TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
     detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
-    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 
     TArray<FHitResult> allDetectionHits;
     GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(ctrl->m_DetectionCapsuleRadius));
@@ -33,7 +38,17 @@ void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent &OwnerComp, uint8 
     FHitResult detectionHit;
     ctrl->GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 
-    if (detectionHit.GetComponent() && detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER)
+    auto playerDetected = detectionHit.GetComponent() && (detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER);
+
+    if (playerDetected)
+    {
+        // Direct raycast to check for walls
+        FHitResult hit;
+        GetWorld()->LineTraceSingleByChannel(hit, detectionStartLocation, detectionHit.ImpactPoint, ECollisionChannel::ECC_WorldStatic);
+        playerDetected = hit.GetComponent() && (hit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER);
+    }
+
+    if (playerDetected)
     {
         DrawDebugLine(GetWorld(), detectionStartLocation, detectionHit.ImpactPoint, FColor::Red);
         OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(ctrl->GetPlayerDetectedBBKeyID(), true);
