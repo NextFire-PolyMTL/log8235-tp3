@@ -3,24 +3,33 @@
 #include "BTTask_FindCollectiblePosition.h"
 #include "../BT_SDTAIController.h"
 #include "../SDTCollectible.h"
+#include "../SDTUtils.h"
 #include "../SoftDesignTraining.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 
 EBTNodeResult::Type UBTTask_FindCollectiblePosition::ExecuteTask(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory)
 {
+    auto result = SDTUtils::MeasureExecutionTime(&UBTTask_FindCollectiblePosition::PerformFindCollectible, this, OwnerComp, NodeMemory);
+    OwnerComp.GetBlackboardComponent()->SetValueAsFloat("TimeSpentFindCollectible", result.first);
+    return result.second;
+}
+
+
+EBTNodeResult::Type UBTTask_FindCollectiblePosition::PerformFindCollectible(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
+{
     auto ctrl = Cast<ABT_SDTAIController>(OwnerComp.GetAIOwner());
 
     float closestSqrCollectibleDistance = 18446744073709551610.f;
-    ASDTCollectible *closestCollectible = nullptr;
+    ASDTCollectible* closestCollectible = nullptr;
 
-    TArray<AActor *> foundCollectibles;
+    TArray<AActor*> foundCollectibles;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
 
     while (foundCollectibles.Num() != 0)
     {
         int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
 
-        ASDTCollectible *collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
+        ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
         if (!collectibleActor)
             return EBTNodeResult::Failed;
 

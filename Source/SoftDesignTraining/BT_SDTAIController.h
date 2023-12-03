@@ -59,4 +59,8 @@ private:
 
 	uint8 m_shouldInvestigateBBKeyID;
 	uint8 m_groupTargetPositionBBKeyID;
+
+	FBlackboard::FKey TimeSpentFindPlayer;
+	FBlackboard::FKey TimeSpentFindCollectible;
+	FBlackboard::FKey TimeSpentFindFleePoint;
 };

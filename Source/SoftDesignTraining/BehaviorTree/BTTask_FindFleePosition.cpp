@@ -4,15 +4,24 @@
 #include "../BT_SDTAIController.h"
 #include "../SoftDesignTraining.h"
 #include "../SDTFleeLocation.h"
+#include "../SDTUtils.h"
 #include "EngineUtils.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 
 EBTNodeResult::Type UBTTask_FindFleePosition::ExecuteTask(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory)
 {
+    auto result = SDTUtils::MeasureExecutionTime(&UBTTask_FindFleePosition::PerformFindFleePosition, this, OwnerComp, NodeMemory);
+    OwnerComp.GetBlackboardComponent()->SetValueAsFloat("TimeSpentFindFleePoint", result.first);
+    return result.second;
+}
+
+
+EBTNodeResult::Type UBTTask_FindFleePosition::PerformFindFleePosition(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
+{
     auto ctrl = Cast<ABT_SDTAIController>(OwnerComp.GetAIOwner());
 
     float bestLocationScore = 0.f;
-    ASDTFleeLocation *bestFleeLocation = nullptr;
+    ASDTFleeLocation* bestFleeLocation = nullptr;
 
     auto playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     if (!playerCharacter)
@@ -22,7 +31,7 @@ EBTNodeResult::Type UBTTask_FindFleePosition::ExecuteTask(UBehaviorTreeComponent
 
     for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
     {
-        ASDTFleeLocation *fleeLocation = Cast<ASDTFleeLocation>(*actorIterator);
+        ASDTFleeLocation* fleeLocation = Cast<ASDTFleeLocation>(*actorIterator);
         if (fleeLocation)
         {
             float distToFleeLocation = FVector::Dist(fleeLocation->GetActorLocation(), playerCharacter->GetActorLocation());

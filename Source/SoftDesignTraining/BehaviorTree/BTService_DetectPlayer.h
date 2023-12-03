@@ -17,4 +17,7 @@ class SOFTDESIGNTRAINING_API UBTService_DetectPlayer : public UBTService
 public:
 	UBTService_DetectPlayer();
 	virtual void TickNode(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory, float DeltaSeconds) override;
+
+private:
+	void PerformDetectPlayer(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) const;
 };

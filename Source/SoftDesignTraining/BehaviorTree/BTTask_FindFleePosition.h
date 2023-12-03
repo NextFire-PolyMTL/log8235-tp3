@@ -15,4 +15,7 @@ class SOFTDESIGNTRAINING_API UBTTask_FindFleePosition : public UBTTaskNode
 	GENERATED_BODY()
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory) override;
+
+private:
+	EBTNodeResult::Type PerformFindFleePosition(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const;
 };

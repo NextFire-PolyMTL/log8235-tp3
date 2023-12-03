@@ -15,4 +15,7 @@ class SOFTDESIGNTRAINING_API UBTTask_FindCollectiblePosition : public UBTTaskNod
 	GENERATED_BODY()
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory) override;
+
+private:
+	EBTNodeResult::Type PerformFindCollectible(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const;
 };

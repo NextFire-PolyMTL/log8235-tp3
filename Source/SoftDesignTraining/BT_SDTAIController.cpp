@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BT_SDTAIController.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Float.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 #include "BehaviorTree/GroupManager.h"
 
@@ -39,6 +40,9 @@ void ABT_SDTAIController::BeginPlay()
 
     // Set this agent in the BT
     m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), GetPawn());
+    TimeSpentFindPlayer = m_blackboardComponent->GetKeyID("TimeSpentFindPlayer");
+    TimeSpentFindCollectible = m_blackboardComponent->GetKeyID("TimeSpentFindCollectible");
+    TimeSpentFindFleePoint = m_blackboardComponent->GetKeyID("TimeSpentFindFleePoint");
 
     m_behaviorTreeComponent->StartTree(*m_aiBehaviorTree);
 }
@@ -49,8 +53,14 @@ void ABT_SDTAIController::Tick(float deltaTime)
 
     auto groupManager = GroupManager::GetInstance();
     auto controllers = groupManager->GetRegisteredControllers();
+    auto world = GetWorld();
+    auto loc = GetPawn()->GetActorLocation();
+    DrawDebugString(world, loc - FVector::UpVector * 100, FString::Printf(TEXT("Player: %.3fms\nFlee: %.3fms\nCollectible: %.3fms"),
+        m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindPlayer),
+        m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindFleePoint),
+        m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindCollectible)), nullptr, FColor::Purple, 0.0f, true);
     if (controllers.Contains(this))
     {
-        DrawDebugSphere(GetWorld(), GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
+        DrawDebugSphere(world, loc + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
     }
 }
