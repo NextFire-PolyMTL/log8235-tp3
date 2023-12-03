@@ -13,6 +13,8 @@ UBTService_CheckPoweredUp::UBTService_CheckPoweredUp()
 
 void UBTService_CheckPoweredUp::TickNode(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory, float DeltaSeconds)
 {
+    /*
     auto ctrl = Cast<ABT_SDTAIController>(OwnerComp.GetAIOwner());
     OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(ctrl->GetPlayerPoweredUpBBKeyID(), SDTUtils::IsPlayerPoweredUp(GetWorld()));
+    */
 }

@@ -15,8 +15,10 @@ UBTService_DetectPlayer::UBTService_DetectPlayer()
 
 void UBTService_DetectPlayer::TickNode(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory, float DeltaSeconds)
 {
+    /*
     double timeElapsed = SDTUtils::MeasureExecutionTime(&UBTService_DetectPlayer::PerformDetectPlayer, this, OwnerComp, NodeMemory, DeltaSeconds);
     OwnerComp.GetBlackboardComponent()->SetValueAsFloat("TimeSpentFindPlayer", timeElapsed);
+    */
 }
 
 void UBTService_DetectPlayer::PerformDetectPlayer(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) const

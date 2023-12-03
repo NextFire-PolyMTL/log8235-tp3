@@ -9,6 +9,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BT_SDTAIController.generated.h"
 
+class AAgentBudgetManager;
+
 /**
  *
  */
@@ -21,7 +23,9 @@ public:
 	ABT_SDTAIController(const FObjectInitializer &ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float deltaTime) override;
+	void UpdateAgent();
 
 	UBlackboardComponent *GetBlackboardComponent() const { return m_blackboardComponent; }
 
@@ -48,6 +52,9 @@ private:
 	UPROPERTY(transient)
 	UBlackboardComponent *m_blackboardComponent;
 
+	void PerformDetectPlayer();
+	void CalculateGroupTargetPosition();
+
 	uint8 m_playerPositionBBKeyID;
 	uint8 m_isPlayerDetectedBBKeyID;
 	uint8 m_lastSeenBBKeyID;
@@ -60,6 +67,7 @@ private:
 	uint8 m_shouldInvestigateBBKeyID;
 	uint8 m_groupTargetPositionBBKeyID;
 
+	AAgentBudgetManager* BudgetManager;
 	FBlackboard::FKey TimeSpentFindPlayer;
 	FBlackboard::FKey TimeSpentFindCollectible;
 	FBlackboard::FKey TimeSpentFindFleePoint;

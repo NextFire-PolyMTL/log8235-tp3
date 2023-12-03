@@ -13,6 +13,7 @@ UBTService_GroupTargetPosition::UBTService_GroupTargetPosition()
 
 void UBTService_GroupTargetPosition::TickNode(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory, float DeltaSeconds)
 {
+    /*
     auto ctrl = Cast<ABT_SDTAIController>(OwnerComp.GetAIOwner());
 
     auto groupManager = GroupManager::GetInstance();
@@ -49,4 +50,5 @@ void UBTService_GroupTargetPosition::TickNode(UBehaviorTreeComponent &OwnerComp,
     OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(ctrl->GetGroupTargetPositionBBKeyID(), targetPos);
     DrawDebugSphere(GetWorld(), targetPos, 30.0f, 32, FColor::Orange);
     DrawDebugLine(GetWorld(), ctrl->GetPawn()->GetActorLocation(), targetPos, FColor::Orange);
+    */
 }
