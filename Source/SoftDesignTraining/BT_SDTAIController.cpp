@@ -84,15 +84,15 @@ void ABT_SDTAIController::Tick(float deltaTime)
     if (controllers.Contains(this))
     {
         DrawDebugSphere(world, loc + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
-    }
-    if (!SDTUtils::IsPlayerPoweredUp(world) && !m_blackboardComponent->GetValue<UBlackboardKeyType_Bool>(m_isPlayerDetectedBBKeyID))
-    {
-        if (PlayerFound)
+        if (!SDTUtils::IsPlayerPoweredUp(world) && !m_blackboardComponent->GetValue<UBlackboardKeyType_Bool>(m_isPlayerDetectedBBKeyID))
         {
-            auto targetPos = m_blackboardComponent->GetValue<UBlackboardKeyType_Vector>(m_groupTargetPositionBBKeyID);
-            DrawDebugSphere(GetWorld(), PlayerLKP, 30.0f, 32, FColor::Green);
-            DrawDebugSphere(GetWorld(), targetPos, 30.0f, 32, FColor::Orange);
-            DrawDebugLine(GetWorld(), GetPawn()->GetActorLocation(), targetPos, FColor::Orange);
+            if (PlayerFound)
+            {
+                auto targetPos = m_blackboardComponent->GetValue<UBlackboardKeyType_Vector>(m_groupTargetPositionBBKeyID);
+                DrawDebugSphere(GetWorld(), PlayerLKP, 30.0f, 32, FColor::Green);
+                DrawDebugSphere(GetWorld(), targetPos, 30.0f, 32, FColor::Orange);
+                DrawDebugLine(GetWorld(), GetPawn()->GetActorLocation(), targetPos, FColor::Orange);
+            }
         }
     }
 }
@@ -101,7 +101,7 @@ void ABT_SDTAIController::UpdateAgent()
 {
     double timeElapsed = SDTUtils::MeasureExecutionTime(&ABT_SDTAIController::PerformDetectPlayer, this);
     m_blackboardComponent->SetValueAsFloat("TimeSpentFindPlayer", timeElapsed);
-    if (m_blackboardComponent->GetValue<UBlackboardKeyType_Bool>(m_isPlayerDetectedBBKeyID) && m_blackboardComponent->GetValue<UBlackboardKeyType_Bool>(m_shouldInvestigateBBKeyID))
+    if (GroupManager::GetInstance()->GetRegisteredControllers().Contains(this) && m_blackboardComponent->GetValue<UBlackboardKeyType_Bool>(m_shouldInvestigateBBKeyID))
     {
         auto playerPoweredUp = SDTUtils::IsPlayerPoweredUp(GetWorld());
         m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_isPlayerPoweredUpBBKeyID, playerPoweredUp);
