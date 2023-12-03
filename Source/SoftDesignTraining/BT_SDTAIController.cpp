@@ -2,6 +2,7 @@
 
 #include "BT_SDTAIController.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
+#include "BehaviorTree/GroupManager.h"
 
 ABT_SDTAIController::ABT_SDTAIController(const FObjectInitializer &ObjectInitializer)
     : Super(ObjectInitializer),
@@ -45,4 +46,11 @@ void ABT_SDTAIController::BeginPlay()
 void ABT_SDTAIController::Tick(float deltaTime)
 {
     AAIController::Tick(deltaTime);
+
+    auto groupManager = GroupManager::GetInstance();
+    auto controllers = groupManager->GetRegisteredControllers();
+    if (controllers.Contains(this))
+    {
+        DrawDebugSphere(GetWorld(), GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
+    }
 }
