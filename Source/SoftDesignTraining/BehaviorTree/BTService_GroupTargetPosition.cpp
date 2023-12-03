@@ -23,7 +23,12 @@ void UBTService_GroupTargetPosition::TickNode(UBehaviorTreeComponent &OwnerComp,
     auto playerLKP = groupManager->GetLKPFromGroup(playerFound);
     DrawDebugSphere(GetWorld(), playerLKP, 30.0f, 32, FColor::Green);
 
-    auto targetPos = playerLKP;
+    auto controllers = groupManager->GetRegisteredControllers();
+    auto numControllers = controllers.Num();
+    auto currentControllerIndex = controllers.Find(ctrl);
+    auto radius = ctrl->m_DetectionCapsuleRadius / 2;
+    auto angle = 2 * PI * currentControllerIndex / numControllers;
+    auto targetPos = playerLKP + FVector(radius * cos(angle), radius * sin(angle), 0.0f);
 
     OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(ctrl->GetGroupTargetPositionBBKeyID(), targetPos);
     DrawDebugSphere(GetWorld(), targetPos, 30.0f, 32, FColor::Orange);
