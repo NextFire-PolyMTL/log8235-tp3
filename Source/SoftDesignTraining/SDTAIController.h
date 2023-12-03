@@ -7,7 +7,7 @@
 #include "SDTAIController.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS(ClassGroup = AI, config = Game)
 class SOFTDESIGNTRAINING_API ASDTAIController : public ASDTBaseAIController
@@ -53,7 +53,6 @@ protected:
         PlayerInteractionBehavior_Flee
     };
 
-    void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit);
     void UpdatePlayerInteractionBehavior(const FHitResult& detectionHit, float deltaTime);
     PlayerInteractionBehavior GetCurrentPlayerInteractionBehavior(const FHitResult& hit);
     bool HasLoSOnHit(const FHitResult& hit);
@@ -69,6 +68,8 @@ public:
     void RotateTowards(const FVector& targetLocation);
     void SetActorLocation(const FVector& targetLocation);
     void AIStateInterrupted();
+
+    void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit);
 
 private:
     virtual void GoToBestTarget(float deltaTime) override;

@@ -18,10 +18,14 @@ class SOFTDESIGNTRAINING_API ABT_SDTAIController : public ASDTAIController
 	GENERATED_BODY()
 
 public:
-	ABT_SDTAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	ABT_SDTAIController(const FObjectInitializer &ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime) override;
+
+	uint8 GetTargetPositionBBKeyID() const { return m_targetPositionBBKeyID; }
+	uint8 GetPlayerDetectedBBKeyID() const { return m_isPlayerDetectedBBKeyID; }
+	uint8 GetPlayerPoweredUpBBKeyID() const { return m_isPlayerPoweredUpBBKeyID; }
 
 protected:
 	UPROPERTY(EditAnywhere, category = Behavior)
@@ -33,4 +37,8 @@ private:
 
 	UPROPERTY(transient)
 	UBlackboardComponent *m_blackboardComponent;
+
+	uint8 m_targetPositionBBKeyID;
+	uint8 m_isPlayerDetectedBBKeyID;
+	uint8 m_isPlayerPoweredUpBBKeyID;
 };
