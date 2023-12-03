@@ -71,4 +71,10 @@ private:
 	FBlackboard::FKey TimeSpentFindPlayer;
 	FBlackboard::FKey TimeSpentFindCollectible;
 	FBlackboard::FKey TimeSpentFindFleePoint;
+
+	// For Debug Draw
+	bool PlayerFound = false;
+	FVector PlayerLKP = FVector::ZeroVector;
+	FVector DetectionShape = FVector::ZeroVector;
+	FQuat4d DetectRotation = FQuat4d::Identity;
 };

@@ -76,6 +76,7 @@ void ABT_SDTAIController::Tick(float deltaTime)
     auto controllers = groupManager->GetRegisteredControllers();
     auto world = GetWorld();
     auto loc = GetPawn()->GetActorLocation();
+    DrawDebugCapsule(GetWorld(), DetectionShape, m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, DetectRotation, FColor::Blue);
     DrawDebugString(world, loc - FVector::UpVector * 100, FString::Printf(TEXT("Player: %.3fms\nFlee: %.3fms\nCollectible: %.3fms"),
         m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindPlayer),
         m_blackboardComponent->GetValue<UBlackboardKeyType_Float>(TimeSpentFindFleePoint),
@@ -83,6 +84,16 @@ void ABT_SDTAIController::Tick(float deltaTime)
     if (controllers.Contains(this))
     {
         DrawDebugSphere(world, loc + FVector(0.f, 0.f, 100.f), 30.0f, 32, FColor::Orange);
+    }
+    if (!SDTUtils::IsPlayerPoweredUp(world) && !m_blackboardComponent->GetValue<UBlackboardKeyType_Bool>(m_isPlayerDetectedBBKeyID))
+    {
+        if (PlayerFound)
+        {
+            auto targetPos = m_blackboardComponent->GetValue<UBlackboardKeyType_Vector>(m_groupTargetPositionBBKeyID);
+            DrawDebugSphere(GetWorld(), PlayerLKP, 30.0f, 32, FColor::Green);
+            DrawDebugSphere(GetWorld(), targetPos, 30.0f, 32, FColor::Orange);
+            DrawDebugLine(GetWorld(), GetPawn()->GetActorLocation(), targetPos, FColor::Orange);
+        }
     }
 }
 
@@ -115,14 +126,14 @@ void ABT_SDTAIController::PerformDetectPlayer()
 
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
+    DetectRotation = selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat();
+    DetectionShape = detectionStartLocation + m_DetectionCapsuleHalfLength * GetPawn()->GetActorForwardVector();
 
     TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
     detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
 
     TArray<FHitResult> allDetectionHits;
     GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(m_DetectionCapsuleRadius));
-
-    DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
 
     FHitResult detectionHit;
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
@@ -139,14 +150,14 @@ void ABT_SDTAIController::PerformDetectPlayer()
 
     if (playerDetected)
     {
-        DrawDebugLine(GetWorld(), detectionStartLocation, detectionHit.ImpactPoint, FColor::Red);
-        m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(GetPlayerDetectedBBKeyID(), true);
-        m_blackboardComponent->SetValue<UBlackboardKeyType_Vector>(GetPlayerPositionBBKeyID(), detectionHit.GetActor()->GetActorLocation());
-        m_blackboardComponent->SetValue<UBlackboardKeyType_Float>(GetLastSeenBBKeyID(), UGameplayStatics::GetRealTimeSeconds(GetWorld()));
+        DrawDebugLine(GetWorld(), detectionStartLocation, detectionHit.ImpactPoint, FColor::Red, false, 0.1f);
+        m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_isPlayerDetectedBBKeyID, true);
+        m_blackboardComponent->SetValue<UBlackboardKeyType_Vector>(m_playerPositionBBKeyID, detectionHit.GetActor()->GetActorLocation());
+        m_blackboardComponent->SetValue<UBlackboardKeyType_Float>(m_lastSeenBBKeyID, UGameplayStatics::GetRealTimeSeconds(GetWorld()));
     }
     else
     {
-        m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(GetPlayerDetectedBBKeyID(), false);
+        m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_isPlayerDetectedBBKeyID, false);
     }
 }
 
@@ -156,18 +167,16 @@ void ABT_SDTAIController::CalculateGroupTargetPosition()
 
     m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_shouldInvestigateBBKeyID, groupManager->ShouldInvestigate());
 
-    auto playerFound = false;
-    auto playerLKP = groupManager->GetLKPFromGroup(playerFound);
+    PlayerFound = false;
+    PlayerLKP = groupManager->GetLKPFromGroup(PlayerFound);
 
-    if (!playerFound)
+    if (!PlayerFound)
     {
         return; // FIXME: hmmmm
     }
 
-    DrawDebugSphere(GetWorld(), playerLKP, 30.0f, 32, FColor::Green);
-
     FVector targetPos;
-    if ((playerLKP - GetPawn()->GetActorLocation()).Size2D() > m_DetectionCapsuleRadius)
+    if ((PlayerLKP - GetPawn()->GetActorLocation()).Size2D() > m_DetectionCapsuleRadius)
     {
         // surround player
         auto controllers = groupManager->GetRegisteredControllers();
@@ -175,15 +184,13 @@ void ABT_SDTAIController::CalculateGroupTargetPosition()
         auto currentControllerIndex = controllers.Find(this);
         auto radius = m_DetectionCapsuleRadius;
         auto angle = 2 * PI * currentControllerIndex / numControllers;
-        targetPos = playerLKP + FVector(radius * cos(angle), radius * sin(angle), 0.0f);
+        targetPos = PlayerLKP + FVector(radius * cos(angle), radius * sin(angle), 0.0f);
     }
     else
     {
         // just attack
-        targetPos = playerLKP;
+        targetPos = PlayerLKP;
     }
 
     m_blackboardComponent->SetValue<UBlackboardKeyType_Vector>(m_groupTargetPositionBBKeyID, targetPos);
-    DrawDebugSphere(GetWorld(), targetPos, 30.0f, 32, FColor::Orange);
-    DrawDebugLine(GetWorld(), GetPawn()->GetActorLocation(), targetPos, FColor::Orange);
 }
