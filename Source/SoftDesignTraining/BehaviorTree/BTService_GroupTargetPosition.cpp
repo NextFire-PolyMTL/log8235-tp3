@@ -21,6 +21,12 @@ void UBTService_GroupTargetPosition::TickNode(UBehaviorTreeComponent &OwnerComp,
 
     auto playerFound = false;
     auto playerLKP = groupManager->GetLKPFromGroup(playerFound);
+
+    if (!playerFound)
+    {
+        return; // FIXME: hmmmm
+    }
+
     DrawDebugSphere(GetWorld(), playerLKP, 30.0f, 32, FColor::Green);
 
     FVector targetPos;
