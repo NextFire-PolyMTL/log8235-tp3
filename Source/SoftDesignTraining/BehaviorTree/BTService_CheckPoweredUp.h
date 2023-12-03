@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTService.h"
-#include "BTService_FindFleeLocation.generated.h"
+#include "BTService_CheckPoweredUp.generated.h"
 
 /**
  *
  */
 UCLASS()
-class SOFTDESIGNTRAINING_API UBTService_FindFleeLocation : public UBTService
+class SOFTDESIGNTRAINING_API UBTService_CheckPoweredUp : public UBTService
 {
 	GENERATED_BODY()
 
 public:
-	UBTService_FindFleeLocation();
+	UBTService_CheckPoweredUp();
 	virtual void TickNode(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory, float DeltaSeconds) override;
 };

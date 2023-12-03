@@ -120,7 +120,7 @@ void ASDTAIController::PlayerInteractionLoSUpdate()
             DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Lost LoS", GetPawn(), FColor::Red, 5.f, false);
         }
     }
-    
+
 }
 
 void ASDTAIController::OnPlayerInteractionNoLosDone()
@@ -346,6 +346,11 @@ void ASDTAIController::GetHightestPriorityDetectionHit(const TArray<FHitResult>&
             else if(component->GetCollisionObjectType() == COLLISION_COLLECTIBLE)
             {
                 outDetectionHit = hit;
+            }
+            else if (component->GetCollisionObjectType() == ECC_WorldStatic)
+            {
+                // Don't look through walls.
+                return;
             }
         }
     }

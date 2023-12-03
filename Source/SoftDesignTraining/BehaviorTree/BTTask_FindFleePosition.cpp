@@ -1,18 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "BTService_FindFleeLocation.h"
+#include "BTTask_FindFleePosition.h"
 #include "../BT_SDTAIController.h"
 #include "../SoftDesignTraining.h"
 #include "../SDTFleeLocation.h"
 #include "EngineUtils.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 
-UBTService_FindFleeLocation::UBTService_FindFleeLocation()
-{
-    bCreateNodeInstance = true;
-}
-
-void UBTService_FindFleeLocation::TickNode(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory, float DeltaSeconds)
+EBTNodeResult::Type UBTTask_FindFleePosition::ExecuteTask(UBehaviorTreeComponent &OwnerComp, uint8 *NodeMemory)
 {
     auto ctrl = Cast<ABT_SDTAIController>(OwnerComp.GetAIOwner());
 
@@ -22,7 +17,7 @@ void UBTService_FindFleeLocation::TickNode(UBehaviorTreeComponent &OwnerComp, ui
     auto playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     if (!playerCharacter)
     {
-        return;
+        return EBTNodeResult::Failed;
     }
 
     for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
@@ -53,6 +48,9 @@ void UBTService_FindFleeLocation::TickNode(UBehaviorTreeComponent &OwnerComp, ui
 
     if (bestFleeLocation)
     {
-        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(ctrl->GetTargetPositionBBKeyID(), bestFleeLocation->GetActorLocation());
+        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(ctrl->GetFleePositionBBKeyID(), bestFleeLocation->GetActorLocation());
+        return EBTNodeResult::Succeeded;
     }
+
+    return EBTNodeResult::Failed;
 }
